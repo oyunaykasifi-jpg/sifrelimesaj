@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#111111" />
+  <title>Şifreli Mesaj</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial; margin: 0; }
+    .wrap { max-width: 780px; margin: 0 auto; padding: 16px; }
+    h1 { margin: 10px 0 6px; font-size: 22px; }
+    .card { border: 1px solid rgba(127,127,127,.35); border-radius: 14px; padding: 14px; margin: 12px 0; }
+    label { display:block; font-size: 13px; opacity: .85; margin: 10px 0 6px; }
+    textarea, input { width: 100%; box-sizing: border-box; padding: 12px; border-radius: 12px; border: 1px solid rgba(127,127,127,.35); font-size: 15px; }
+    textarea { min-height: 110px; resize: vertical; }
+    .row { display:flex; gap:10px; flex-wrap: wrap; align-items: center; }
+    button {
+      padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(127,127,127,.35);
+      background: transparent; font-size: 15px; cursor: pointer;
+    }
+    button.primary { background: #111; color: #fff; border-color: #111; }
+    .tabs { display:flex; gap:10px; margin: 10px 0 0; }
+    .tab { flex:1; }
+    .muted { font-size: 12px; opacity: .75; line-height: 1.35; }
+    .ok { color: #1a7f37; }
+    .warn { color: #b85c00; }
+    .err { color: #b00020; }
+    .pill { display:inline-block; padding: 4px 10px; border: 1px solid rgba(127,127,127,.35); border-radius: 999px; font-size: 12px; }
+    .footer { margin-top: 12px; font-size: 12px; opacity: .75; }
+    .preview { margin-top: 10px; display:none; }
+    .preview img { max-width: 100%; border-radius: 12px; border: 1px solid rgba(127,127,127,.35); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🔒 ŞifreliMesaj.com</h1>
+    <div class="muted">Tüm işlem cihazında olur. Sunucuya dosya/mesaj gönderilmez. WhatsApp’ta “Belge” olarak göndermek en sağlamı.</div>
+
+    <div class="tabs">
+      <button class="tab primary" id="tabLock">Kilitle</button>
+      <button class="tab" id="tabUnlock">Aç</button>
+    </div>
+
+    <div class="card" id="panelLock">
+      <label>Mesaj (opsiyonel)</label>
+      <textarea id="plain" placeholder="İstersen metin yaz veya fotoğraf ekle…"></textarea>
+
+      <label>Fotoğraf (opsiyonel)</label>
+      <input type="file" id="photo" accept="image/*" />
+
+      <label>Anahtar</label>
+      <div class="row">
+        <input id="key" placeholder="Kendin yazabilir veya üret…" autocomplete="off" />
+        <button id="genKey" type="button">🔑 Üret</button>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <span class="pill" id="strengthPill">Güç: -</span>
+        <span class="muted" id="strengthHint"></span>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="primary" id="lockBtn" type="button">Kilitle → Şifreli Blok Üret</button>
+        <button id="clearLock" type="button">Temizle</button>
+      </div>
+
+      <label>Şifreli Blok (WhatsApp’a yapıştır veya kaydet)</label>
+      <textarea id="cipher" placeholder="Burada şifreli blok oluşacak…" readonly></textarea>
+
+      <div class="row" style="margin-top:10px;">
+        <button id="copyCipher" type="button">Kopyala</button>
+        <button id="shareCipher" type="button">Paylaş</button>
+        <button id="downloadCipher" type="button">Dosya olarak indir (.txt)</button>
+        <span class="muted" id="lockStatus"></span>
+      </div>
+
+      <div class="footer">
+        İpucu: Fotoğraf eklediysen blok büyüyebilir; WhatsApp’ta en garanti yöntem “Belge/Doküman” göndermek.
+      </div>
+    </div>
+
+    <div class="card" id="panelUnlock" style="display:none;">
+      <label>Şifreli Blok</label>
+      <textarea id="cipherIn" placeholder="Gelen şifreli bloğu buraya yapıştır…"></textarea>
+
+      <label>Anahtar</label>
+      <input id="keyIn" placeholder="Anahtarı gir…" autocomplete="off" />
+
+      <div class="row" style="margin-top:12px;">
+        <button class="primary" id="unlockBtn" type="button">Aç → Çöz</button>
+        <button id="clearUnlock" type="button">Temizle</button>
+      </div>
+
+      <label>Çözülen Mesaj</label>
+      <textarea id="plainOut" placeholder="Burada çözülen mesaj görünecek…" readonly></textarea>
+
+      <div class="preview" id="imgWrap">
+        <label>Çözülen Fotoğraf</label>
+        <img id="imgOut" alt="Çözülen fotoğraf" />
+        <div class="row" style="margin-top:10px;">
+          <button id="downloadImg" type="button">Fotoğrafı indir</button>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <button id="copyPlain" type="button">Metni Kopyala</button>
+        <button id="sharePlain" type="button">Paylaş</button>
+        <span class="muted" id="unlockStatus"></span>
+      </div>
+
+      <div class="footer">
+        Not: Yanlış anahtar veya kurcalama varsa açılmaz (AES-GCM bütünlük kontrolü).
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin:0 0 8px; font-size:16px;">☕ Bağış</h2>
+      <div class="muted" style="margin-bottom:10px;">
+        Bu proje tamamen ücretsiz ve cihazında çalışır. Destek olmak istersen:
+      </div>
+
+      <label>Bitcoin (SegWit) Adresi</label>
+      <input id="donateAddr" value="bc1qw8g5fa82nj9eu6akr9wxx4gh4c5fxekm8dykgy" readonly />
+
+      <div class="row" style="margin-top:10px;">
+        <button id="copyDonate" type="button">Adresi Kopyala</button>
+        <span class="muted" id="donateStatus"></span>
+      </div>
+
+      <div class="footer">
+        Not: Reklam/izleyici (tracking) kullanmıyoruz. Gizlilik odaklı kalacağız.
+      </div>
+    </div>
+
+    <div class="card" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+      <div class="row" style="gap:8px;">
+        <span class="pill">🛡️ Veri cihazında</span>
+        <span class="pill">🗄️ Sunucu yok</span>
+        <span class="pill">🕵️ Tracking yok</span>
+      </div>
+      <div class="muted">
+        Çalışma prensibi: Tarayıcında şifreler/çözer. Hiçbir şey yüklenmez.
+      </div>
+    </div>
+
+   <div class="card" style="margin-top:10px;">
+     <div style="font-weight:600; cursor:pointer;" onclick="toggleHow()">
+       ❓ Nasıl kullanılır?
+     </div>
+     <div id="howBox" style="display:none; margin-top:8px;" class="muted">
+       1️⃣ Mesaj yaz (istersen fotoğraf ekle)<br/>
+       2️⃣ Anahtar belirle veya 🔑 Üret<br/>
+       3️⃣ <b>Kilitle</b> → çıkan bloğu WhatsApp’ta <b>Belge</b> olarak gönder<br/>
+       4️⃣ Karşı taraf <b>Aç</b> sekmesinde bloğu yapıştırıp anahtarı girsin ve şifreli mesajı okusun.
+     </div>
+   </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
