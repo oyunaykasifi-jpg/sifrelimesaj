@@ -22,6 +22,15 @@ Tüm işlem cihazınızda gerçekleşir. Sunucuya veri gönderilmez.
 4. Bloğu karşı tarafa gönder
 5. Karşı taraf anahtar ile açar
 
+   ## 🧠 Güvenlik Detayları
+
+- AES-256-GCM
+- PBKDF2 (SHA-256)
+- 200.000 iterasyon
+- Rastgele salt
+- 12 byte IV
+- Bütünlük doğrulaması (GCM authentication)
+
 ## 🛡️ Gizlilik
 
 Bu proje tamamen istemci taraflıdır.  
@@ -33,5 +42,6 @@ Bitcoin (SegWit):
 `bc1qw8g5fa82nj9eu6akr9wxx4gh4c5fxekm8dykgy`
 
 ---
+
 
 Made with privacy in mind.
